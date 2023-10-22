@@ -1,4 +1,4 @@
-fitz==0.0.1.dev2
+PyMuPDF
 img2pdf==0.4.4
 numpy==1.21.4
 opencv_contrib_python==4.6.0.66
@@ -6,4 +6,3 @@ opencv_python==4.7.0.72
 Pillow==9.5.0
 tqdm==4.64.1
 gunicorn
-frontend==0.0.3
