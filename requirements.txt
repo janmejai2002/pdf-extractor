@@ -6,4 +6,4 @@ opencv_python==4.7.0.72
 Pillow==9.5.0
 tqdm==4.64.1
 gunicorn
-frontend
+frontend==0.0.3
