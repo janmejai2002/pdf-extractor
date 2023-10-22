@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Processing</title>
+</head>
+<body>
+    <h1>Upload a PDF for Processing</h1>
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload and Process">
+    </form>
+    <hr>
+    <!-- Display a link to download the processed PDF -->
+    {% if download_link %}
+    <p><a href="{{ download_link }}">Download Processed PDF</a></p>
+    {% endif %}
+</body>
+</html>
