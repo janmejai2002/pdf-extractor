@@ -133,12 +133,13 @@ def clean_loop(image):
     return image
 
 def process_image(image):
-
-    lower_green = (0, 165, 0)
-    upper_green = (215, 255, 168)
-
+#Goodnotes Green
+    # lower_green = (0, 165, 0)
+    # upper_green = (215, 255, 168)
+    lower_green = (82, 225, 245)
+    upper_green = (150, 250, 255)
     green_mask = cv2.inRange(image, lower_green, upper_green)
-
+    # cv2.imwrite('mask.jpg', green_mask)
     kernel = np.ones((3, 3), np.uint8)
     openning = cv2.morphologyEx(green_mask, cv2.MORPH_OPEN, kernel, iterations=2)
     kernel = np.ones((8, 8), np.uint8)
@@ -146,15 +147,18 @@ def process_image(image):
 
 
     preserved_highlights = cv2.bitwise_and(image, image, mask=closing)
-
+    # cv2.imwrite('mask1.jpg',preserved_highlights )
     gray = cv2.cvtColor(preserved_highlights, cv2.COLOR_RGB2GRAY)
     _, preserved_text = cv2.threshold(gray, 135, 255, cv2.THRESH_BINARY_INV)
     preserved_text = cv2.bitwise_and(preserved_text, preserved_text, mask=closing)
 
     final_image = 255 - preserved_text
     cleaned_image = clean_loop(final_image)
-    return resize_img(cleaned_image)    
-
+    
+    # cv2.imwrite('clean.jpg', cleaned_image)
+    resized_img=resize_img(cleaned_image)
+    cv2.imwrite('final.jpg', resized_img)
+    return resized_img      
 
 def main(input_pdf):
     name = os.path.splitext(os.path.basename(input_pdf))[0]
@@ -170,23 +174,35 @@ def main(input_pdf):
         image_list = page.get_pixmap(matrix=fitz.Matrix(300 / 72, 300 / 72))
         image = Image.frombytes("RGB", [image_list.width, image_list.height], image_list.samples)
         image_np = np.array(image)
-        processed_image = process_image(image_np)
 
-        if processed_image.shape[0] > 3:
+        # Convert BGR to RGB format (if needed)
+        image_rgb = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+
+        cv2.imwrite('input.jpg', image_rgb)
+        # print(image.mode)
+        processed_image = process_image(image_rgb)
+
+
+        if processed_image is not None and processed_image.shape[0] > 3:
             image_path = os.path.join(output_dir, f'page_{page_number + 1}.jpg')
             cv2.imwrite(image_path, processed_image)
             processed_image_paths.append(image_path)
+        else:
+            print(f"Skipping page {page_number + 1} due to processing issues.")
 
     pdf_document.close()
+    if not processed_image_paths:
+        print("No valid images were processed.")
+        return None, None
+
     combined_image = stitch_all(output_dir, processed_image_paths)
 
-    output_pdf = os.path.join('output', f'f_{name}_final.pdf')  # Specify the output PDF path
+    output_pdf = os.path.join('output', f'{name}_final.pdf')  # Specify the output PDF path
 
     sheets = sheet(combined_image, output_pdf)
 
     with open(output_pdf, 'wb') as pdf_output:
         pdf_output.write(img2pdf.convert(sheets))
-    # shutil.rmtree(output_dir)
 
     return name, output_pdf  # Return the path to the generated PDF
 
